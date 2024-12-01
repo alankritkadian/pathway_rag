@@ -1,44 +1,50 @@
 import os
 from dotenv import load_dotenv
+os.environ["TESSDATA_PREFIX"] = "/usr/share/tesseract-ocr/4.00/tessdata"
 load_dotenv()
+import pathway as pw
+from pathway.xpacks.llm import parsers, embedders
+
+parser = parsers.OpenParse()
+from pathway.udfs import DiskCache
+from pathway.xpacks.llm.vector_store import VectorStoreServer
 
 import pathway as pw
 from pathway.xpacks.llm.vector_store import VectorStoreServer
-from llama_index.embeddings.openai import OpenAIEmbedding
-# from llama_index.embeddings import *
-from llama_index.core.node_parser import TokenTextSplitter
 
+# Define the data source
 data_sources = []
 data_sources.append(
-    # pw.io.gdrive.read(object_id="1Sjs01BtNUoighEFwdBi7zIEZollpvHFc", service_user_credentials_file="./creds.json", with_metadata=True)
-    pw.io.gdrive.read(object_id=os.getenv("GDRIVE_LINK"), service_user_credentials_file="./creds.json", with_metadata=True)
+    pw.io.gdrive.read(
+        object_id=os.getenv("GDRIVE_LINK"), 
+        service_user_credentials_file="creds.json",  # Replace with your creds.json path
+        with_metadata=True,
     )
+)
 
-embed_model = OpenAIEmbedding(embed_batch_size=10)
-transformations_example = [
-    TokenTextSplitter(
-        chunk_size=150,
-        chunk_overlap=10,
-        separator=" ",
-    ),
-    embed_model,
-]
-pipeline=VectorStoreServer.from_llamaindex_components(
+embedder = embedders.OpenAIEmbedder(cache_strategy=DiskCache())
+pipeline = VectorStoreServer(
     *data_sources,
-    transformations=transformations_example,
+    embedder=embedder,
+      splitter=None,  # OpenParse parser handles the chunking
+        parser=parser,
+
 )
-
-# PATHWAY_HOST = "127.0.0.1"
-# PATHWAY_PORT = 8754
-
-# pipeline.run_server(
-#     host=PATHWAY_HOST, port=PATHWAY_PORT, with_cache=False, threaded=True
-# )
-
+# Run the server
 pipeline.run_server(
-    
-    host=os.getenv("PATHWAY_HOST"), port=int(os.getenv("PATHWAY_PORT")), with_cache=False
+    host=os.getenv("PATHWAY_HOST"), 
+    port=int(os.getenv("PATHWAY_PORT")), 
+    with_cache=False
 )
 
+# Add a delay to ensure the server is running
 import time
 time.sleep(30)
+
+# If additional threaded server setup is needed, uncomment this:
+# pipeline.run_server(
+#     host="127.0.0.1", 
+#     port=8754, 
+#     with_cache=False, 
+#     threaded=True
+# )
