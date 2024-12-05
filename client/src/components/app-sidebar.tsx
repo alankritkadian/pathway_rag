@@ -6,10 +6,10 @@ import {
   BookOpen,
   Bot,
   Command,
-  Frame,
+  ChartBar,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
+  PlayIcon,
+  GitGraphIcon,
   Settings2,
   SquareTerminal,
 } from "lucide-react"
@@ -40,14 +40,9 @@ const data = {
       plan: "Enterprise",
     },
     {
-      name: "Acme Corp.",
+      name: "Dynamic AI",
       logo: AudioWaveform,
       plan: "Startup",
-    },
-    {
-      name: "Evil Corp.",
-      logo: Command,
-      plan: "Free",
     },
   ],
   navMain: [
@@ -58,41 +53,37 @@ const data = {
       isActive: true,
       items: [
         {
-          title: "History",
-          url: "#",
+          title: "New Chat",
+          url: "/chat",
         },
         {
-          title: "Starred",
-          url: "#",
-        },
-        {
-          title: "Settings",
-          url: "#",
+          title: "Starred Replay",
+          url: "/chat",
         },
       ],
     },
     {
-      title: "Models",
+      title: "Agents",
       url: "#",
       icon: Bot,
       items: [
         {
-          title: "Genesis",
+          title: "Finance",
           url: "#",
         },
         {
-          title: "Explorer",
+          title: "Math",
           url: "#",
         },
         {
-          title: "Quantum",
+          title: "Research",
           url: "#",
         },
       ],
     },
     {
       title: "Data Sources",
-      url: "#",
+      url: "/upload",
       icon: BookOpen,
       items: [
         {
@@ -101,7 +92,7 @@ const data = {
         },
         {
           title: "Upload docs",
-          url: "#",
+          url: "/upload",
         }
       ],
     },
@@ -131,19 +122,19 @@ const data = {
   ],
   projects: [
     {
-      name: "Design Engineering",
+      name: "Chatting",
       url: "#",
-      icon: Frame,
+      icon: ChartBar,
     },
     {
-      name: "Sales & Marketing",
+      name: "Decision Tree",
       url: "#",
-      icon: PieChart,
+      icon: GitGraphIcon,
     },
     {
-      name: "Travel",
+      name: "Chat Replay",
       url: "#",
-      icon: Map,
+      icon: PlayIcon,
     },
   ],
 }

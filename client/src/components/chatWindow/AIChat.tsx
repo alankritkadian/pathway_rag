@@ -9,14 +9,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 
-const chat = [
+const initialChat = [
   {
     username: "Supervisor",
     isAgent: true,
-    parentAgent: null,
+    parentAgent: "Query",
     content: "Hello, how can I help you today?",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -25,7 +25,7 @@ const chat = [
   {
     username: "Finance",
     isAgent: true,
-    parentAgent: "supervisor",
+    parentAgent: "Supervisor",
     content: "Try checking the server configurations.",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -52,7 +52,7 @@ const chat = [
   {
     username: "Math",
     isAgent: true,
-    parentAgent: "supervisor",
+    parentAgent: "Supervisor",
     content: "I think there might be an issue with our CDN configuration.",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -77,9 +77,9 @@ const chat = [
     verdict: "passing to next agent",
   },
   {
-    username: "Researcher",
+    username: "Research",
     isAgent: true,
-    parentAgent: "supervisor",
+    parentAgent: "Supervisor",
     content: "I think there might be an issue with our CDN configuration.",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -88,7 +88,7 @@ const chat = [
   {
     username: "pdf",
     isAgent: false,
-    parentAgent: "Researcher",
+    parentAgent: "Research",
     content: "I think there might be an issue with our CDN configuration.",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -97,7 +97,7 @@ const chat = [
   {
     username: "News Updator",
     isAgent: false,
-    parentAgent: "Researcher",
+    parentAgent: "Research",
     content: "Deployment error fixed. Good job, team!",
     thought: "I am here to help you with your queries.",
     isUser: false,
@@ -105,7 +105,8 @@ const chat = [
   },
 ];
 
-export default function AiChat() {
+
+export default function AiChat({type,onButtonClick,onChatUpdate}: {type: string, onButtonClick: () => void,onChatUpdate: (chat: any[]) => void;}) {
   const [newMessage, setNewMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<
     {
@@ -125,10 +126,14 @@ export default function AiChat() {
   const [userInteracted, setUserInteracted] = useState(false);
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [chat, setChat] = useState(initialChat);
 
   // Function to handle sending messages
   const sendMessage = () => {
     if (!newMessage.trim()) return;
+
+    onButtonClick();
+    onChatUpdate(chat);
     const message = {
       id: chatHistory.length + 1,
       content: newMessage,
@@ -147,20 +152,19 @@ export default function AiChat() {
       setSimulationStarted(true);
     }
   };
-  console.log(chatHistory);
 
-  // Effect for simulating chat responses
+  // Effect for simulating initialChat responses
   useEffect(() => {
-    if (!simulationStarted || (chatIndex >= chat.length && !userInteracted))
+    if (!simulationStarted || (chatIndex >= initialChat.length && !userInteracted))
       return;
 
     setLoading(true);
     const timer = setTimeout(() => {
-      if (!userInteracted && chatIndex < chat.length) {
+      if (!userInteracted && chatIndex < initialChat.length) {
         setChatHistory((ch) => [
           ...ch,
           {
-            ...chat[chatIndex],
+            ...initialChat[chatIndex],
             id: ch.length + 1,
             timestamp: new Date().getTime(),
           },
@@ -176,7 +180,7 @@ export default function AiChat() {
 
   return (
     <div className="flex flex-col w-[700px] border-transparent bg-white/20 backdrop-blur-lg rounded-lg mr-auto ml-5  h-screen">
-      <div className="p-4 space-y-4 flex flex-col  overflow-auto overflow-y-scroll mb-36 ">
+      <div className="p-4 space-y-4 flex flex-col  overflow-auto overflow-y-scroll  mb-36 h h-screen">
         {chatHistory.map((msg) => (
           <div>
             <div
