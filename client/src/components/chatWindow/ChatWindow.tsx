@@ -2,6 +2,7 @@ import React from 'react'
 import Navbar from '@/components/landingPage/navbar/Navbar'
 import StarsCanvas from '@/components/landingPage/StarBackground'
 import AiChat from './AIChat'
+import Flow from './Tree'
 
 function ChatWindow() {
   return (
@@ -9,7 +10,11 @@ function ChatWindow() {
     <div className="flex flex-col gap-5">
       <StarsCanvas/>
       <Navbar type = "chat" />
-      <AiChat/>
+      <div className='flex flex-col'>
+        <div className='flex'><AiChat/></div>
+        <div className='flex overflow-x'><Flow/></div>
+      </div>
+      
     </div>
     </main>
   )

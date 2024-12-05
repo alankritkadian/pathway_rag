@@ -61,7 +61,7 @@ const HeroContentBox: React.FC = () => {
           Retrieval-Augmented Generation. Automate processes and unlock
           real-time insights effortlessly.
         </motion.p>
-        <Button  className="py-2 button-primary bg-transparent text-center text-[#fffdfe] cursor-pointer rounded-lg max-w-[200px] shadow-inner shadow-purple-800 font-medium hover:shadow-purple-400">
+        <Button  className="py-2 button-primary bg-transparenta text-center text-[#fffdfe] cursor-pointer rounded-lg max-w-[200px] shadow-inner shadow-purple-800 font-medium hover:shadow-purple-400">
         <Link href="/chat">
         <motion.a
           variants={slideInFromLeft(1)}

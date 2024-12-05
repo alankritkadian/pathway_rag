@@ -7,7 +7,7 @@ import * as THREE from "three"; // Import THREE for proper typings
 // @ts-ignore
 import * as random from "maath/random/dist/maath-random.esm";
 
-const StarBackground = (props: any) => {
+const ChatBackground = (props: any) => {
   // Properly type the ref as THREE.Points
   const ref = useRef<THREE.Points>(null);
 
@@ -39,15 +39,15 @@ const StarBackground = (props: any) => {
   );
 };
 
-const StarsCanvas = () => (
-  <div className="w-full h-auto fixed inset-0 z-[20]">
+const ChatCanvas = () => (
+  <div className="w-full h-auto absolute inset-0 z-10">
     <Canvas camera={{ position: [0, 0, 1] }}>
       <Suspense fallback={null}>
-        <StarBackground />
+        <ChatBackground />
       </Suspense>
       <Preload all />
     </Canvas>
   </div>
 );
 
-export default StarsCanvas;
+export default ChatCanvas;

@@ -136,9 +136,7 @@ const ListItem = React.forwardRef<HTMLAnchorElement, ListItemProps>(
     return (
       <li>
         <NavigationMenuLink asChild>
-          <a
-            ref={ref}
-            href={href}
+          <div
             className={cn(
               "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-white/20 hover:backdrop-blur-3xl hover:shadow-2xl hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground ",
               className
@@ -149,7 +147,7 @@ const ListItem = React.forwardRef<HTMLAnchorElement, ListItemProps>(
             <p className="line-clamp-2 text-sm leading-snug text-muted-foreground text-neutral-300 ">
               {children}
             </p>
-          </a>
+          </div>
         </NavigationMenuLink>
       </li>
     );
