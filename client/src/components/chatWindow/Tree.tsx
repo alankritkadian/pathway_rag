@@ -6,6 +6,8 @@ import {
   HoverCardContent,
   HoverCardTrigger,
 } from "@/components/ui/hover-card";
+import { Button } from "../ui/button";
+import { PlayCircle } from "lucide-react"
 
 interface TreeNode {
   id: string;
@@ -88,7 +90,10 @@ const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
   const [treeData, setTreeData] = useState<TreeNode[]>(initialTreeData);
   const treeDataRef = useRef<TreeNode[]>(initialTreeData);
   const [sequence, setSequence] = useState<{ text: string; parent: string | null }[]>([]);
+  const [play, setPlay] = useState<Boolean>(false);
 
+
+  console.log("gisdfhhsdkjfsjkdf",chat);
   const generateSequence = () => {
     // Convert chat array into sequence format
     const chatSequence = chat.map((item) => ({
@@ -102,7 +107,6 @@ const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
 
   useEffect(() => {
     let isMounted = true;
-    
     const runSequence = async () => {
       // Process each item in the sequence array
       const extractedSequence = generateSequence();
@@ -169,20 +173,15 @@ const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
       }
     };
 
-    if (signal !== null) {
-      // console.log(`Signal received in Flow! Signal ID: ${signal}`);
-
-      // Process the signal here (e.g., display a message)
-      // Simulate signal processing
+    if (play == true) {
       runSequence();
-       // Notify parent that the signal has been processed
     }
     return () => {
       isMounted = false;
     };
-  }, [signal, onSignalProcessed, chat]); // Empty dependency array to run only once on mount
+  }, [signal,play, onSignalProcessed, chat]); // Empty dependency array to run only once on mount
 
-  return <div className="tree overflow-x-auto">{treeRendering(treeData)}</div>;
+  return <div><Button className="rounded-full ml-5 bg-gray-600" onClick={() => setPlay(true)}><PlayCircle/></Button><div className="tree overflow-x-auto">{treeRendering(treeData)}</div></div>;
 };
 
 // Helper function to find a node by text

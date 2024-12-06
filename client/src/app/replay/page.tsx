@@ -114,10 +114,10 @@ function ReplayWindow() {
             </div>
           </header>
           <div className="flex flex-row w-max">
-            <div className="flex">
+            <div className="flex ">
               <ReplayAiChat type = "replay" onButtonClick={handleButtonClick} onChatUpdate={handleChatUpdate} replay={replay} handleDoneReplay={handleDoneReplay} />
             </div>
-            <div className="flex overflow-x-scroll">
+            <div className="flex overflow-x-scroll ">
               <ReplayFlow type = "replay" signal={signal} onSignalProcessed={handleSignalProcessed} chat={chat} />
             </div>
           </div>

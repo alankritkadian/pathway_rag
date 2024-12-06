@@ -163,7 +163,7 @@ export default function ReplayAiChat({
   ]);
 
   return (
-    <div className="flex flex-col w-[700px] border-transparent bg-white/20 backdrop-blur-lg rounded-lg mr-auto ml-5 h-screen">
+    <div className="flex flex-col w-[700px] border-transparent bg-white/20 backdrop-blur-sm rounded-lg mr-auto ml-5 h-screen">
       <div className="p-4 space-y-4 flex flex-col overflow-auto overflow-y-scroll mb-36 h h-screen">
         {serverTimestamp && (
           <div className="text-center text-sm text-gray-500">
@@ -212,7 +212,7 @@ export default function ReplayAiChat({
                   </span>
                 </div>
                 <p>{msg.content}</p>
-                {!msg.isUser && msg.thought && (
+                {!msg.isUser && msg.thought && msg.thought != null && (
                   <Accordion type="single" collapsible>
                     <AccordionItem value="item-1">
                       <AccordionTrigger className="font-semibold">
@@ -238,17 +238,17 @@ export default function ReplayAiChat({
                         autoplay: true,
                         animationData: ChatLoader,
                       }}
-                      height={50}
-                      width={50}
+                      height={40}
+                      width={40}
                     />
                   </div>
-                  <p className="flex text-gray-400 text-center justify-center">
+                  {/* <p className="flex text-gray-400 text-center justify-center">
                     {msg.verdict} {" ..."}
-                  </p>
+                  </p> */}
                 </div>
               ) : (
                 <p className="flex text-gray-400 text-center justify-center my-2">
-                  {msg.verdict}
+                  {/* {msg.verdict} */}
                 </p>
               )}
             </div>

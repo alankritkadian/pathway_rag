@@ -1,151 +1,134 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
+import { io, Socket } from "socket.io-client";
 import { SendHorizonalIcon } from "lucide-react";
 import Lottie from "react-lottie";
-import ChatLoader from "../../../public/chatLoader.json"; // Adjust the path to your ChatLoader.json file
+import ChatLoader from "../../../public/chatLoader.json";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { format, set } from "date-fns";
+import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { db } from "@/firebase/firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
-const initialChat = [
-  {
-    username: "Supervisor",
-    isAgent: true,
-    parentAgent: "Query",
-    content: "Hello, how can I help you today?",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "Finance",
-    isAgent: true,
-    parentAgent: "Supervisor",
-    content: "Try checking the server configurations.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "Budget Advisor",
-    isAgent: false,
-    parentAgent: "Finance",
-    content: "Yes, James is right. Let's check that as well.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "Stock analysor",
-    isAgent: false,
-    parentAgent: "Finance",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "Math",
-    isAgent: true,
-    parentAgent: "Supervisor",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "calculator",
-    isAgent: false,
-    parentAgent: "Math",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "statistics",
-    isAgent: false,
-    parentAgent: "Math",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "Research",
-    isAgent: true,
-    parentAgent: "Supervisor",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "pdf",
-    isAgent: false,
-    parentAgent: "Research",
-    content: "I think there might be an issue with our CDN configuration.",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-  {
-    username: "News Updator",
-    isAgent: false,
-    parentAgent: "Research",
-    content: "Deployment error fixed. Good job, team!",
-    thought: "I am here to help you with your queries.",
-    isUser: false,
-    verdict: "passing to next agent",
-  },
-];
+interface ChatMessage {
+  id: number;
+  timestamp: number;
+  username: string;
+  isAgent: boolean;
+  parentAgent: string | null;
+  content: string;
+  thought: string;
+  isUser: boolean;
+  verdict: string;
+  avatar?: string;
+}
 
-export default function ReplayAiChat({
+interface AiChatProps {
+  type: string;
+  onButtonClick: () => void;
+  onChatUpdate: (chat: ChatMessage[]) => void; // Updated to provide the full chat history
+  saveSignal: boolean;
+  handleDoneSaveChat: () => void;
+}
+
+const AiChat: React.FC<AiChatProps> = ({
   type,
   onButtonClick,
   onChatUpdate,
-  replay,
-  handleDoneReplay,
-}: {
-  type: string;
-  onButtonClick: () => void;
-  onChatUpdate: (chat: any[]) => void;
-  replay: boolean;
-  handleDoneReplay: () => void;
-}) {
+  saveSignal,
+  handleDoneSaveChat,
+}) => {
   const [newMessage, setNewMessage] = useState("");
-  const [chatHistory, setChatHistory] = useState<
-    {
-      id: number;
-      timestamp: number;
-      username: string;
-      isAgent: boolean;
-      parentAgent: string | null;
-      content: string;
-      thought: string;
-      isUser: boolean;
-      verdict: string;
-      avatar?: string;
-    }[]
-  >([]);
-  const [chatIndex, setChatIndex] = useState(0);
-  const [userInteracted, setUserInteracted] = useState(false);
-  const [simulationStarted, setSimulationStarted] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
-  const [chat, setChat] = useState(initialChat);
+  const [socket, setSocket] = useState<Socket | null>(null);
 
-  // Function to handle sending messages
+  // Save chat history to Firestore
+  const saveChatToFirestore = async () => {
+    try {
+      const chatCollection = collection(db, "chatHistories");
+      await addDoc(chatCollection, {
+        history: chatHistory,
+        servertimestamp: serverTimestamp(),
+      });
+      console.log("Chat history saved successfully!");
+    } catch (error) {
+      console.error("Error saving chat history:", error);
+    } finally {
+      handleDoneSaveChat();
+      console.log("Save Chat done");
+    }
+  };
+
+  // Initialize and manage socket connection
+  useEffect(() => {
+    const newSocket = io("http://172.30.2.194:5000", {
+      withCredentials: true,
+    });
+
+    newSocket.on("connect", () => {
+      console.log("Connected to socket server:", newSocket.id);
+    });
+
+    newSocket.on("update", (data) => {
+      console.log("Incoming data", data);
+      setChatHistory((prevChat) => [
+        ...prevChat,
+        {
+          id: prevChat.length + 1,
+          username: data.username,
+          isAgent: data.isAgent,
+          parentAgent: data.parentAgent,
+          content: data.content,
+          thought: data.thought,
+          isUser: false,
+          verdict: data.verdict,
+          timestamp: new Date().getTime(),
+        },
+      ]);
+    });
+
+    newSocket.on("end-stream", () => {
+      console.log("Stream ended, disconnecting socket...");
+      newSocket.disconnect();
+      setSocket(null);
+      setLoading(false);
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+      console.log("Socket disconnected");
+    };
+  }, []);
+
+  // Save chat when the saveSignal changes
+  useEffect(() => {
+    if (saveSignal) {
+      saveChatToFirestore();
+    }
+  }, [saveSignal]);
+
+  // Call onChatUpdate whenever chatHistory changes
+  useEffect(() => {
+    onChatUpdate(chatHistory);
+  }, [chatHistory, onChatUpdate]);
+
+  // Send message handler
   const sendMessage = () => {
     if (!newMessage.trim()) return;
 
     onButtonClick();
-    onChatUpdate(chat);
-    const message = {
+    setLoading(true);
+
+    const message: ChatMessage = {
       id: chatHistory.length + 1,
       content: newMessage,
       timestamp: new Date().getTime(),
@@ -156,49 +139,21 @@ export default function ReplayAiChat({
       thought: "",
       verdict: "",
     };
+
     setChatHistory([...chatHistory, message]);
     setNewMessage("");
-    setUserInteracted(true);
-    if (!simulationStarted) {
-      setSimulationStarted(true);
+
+    if (socket) {
+      socket.emit("simulate-chat", { query: newMessage });
     }
   };
 
-  // Effect for simulating initialChat responses
-  useEffect(() => {
-    if (
-      !simulationStarted ||
-      (chatIndex >= initialChat.length && !userInteracted)
-    )
-      return;
-
-    setLoading(true);
-    const timer = setTimeout(() => {
-      if (!userInteracted && chatIndex < initialChat.length) {
-        setChatHistory((ch) => [
-          ...ch,
-          {
-            ...initialChat[chatIndex],
-            id: ch.length + 1,
-            timestamp: new Date().getTime(),
-          },
-        ]);
-        setChatIndex(chatIndex + 1);
-      }
-      setUserInteracted(false);
-      setLoading(false);
-    }, 3000);
-
-    return () => clearTimeout(timer);
-  }, [chatHistory, chatIndex, userInteracted, simulationStarted]);
-
   return (
-    <div className="flex flex-col w-[700px] border-transparent bg-white/20 backdrop-blur-lg rounded-lg mr-auto ml-5  h-screen">
-      <div className="p-4 space-y-4 flex flex-col  overflow-auto overflow-y-scroll  mb-36 h h-screen">
+    <div className="flex flex-col w-full border-transparent rounded-lg mr-auto ml-5 h-screen bg-white/20 backdrop-blur-sm">
+      <div className="p-4 space-y-4 flex flex-col overflow-auto overflow-y-scroll mb-36 h-screen">
         {chatHistory.map((msg) => (
-          <div>
+          <div key={msg.id}>
             <div
-              key={msg.id}
               className={`flex ${
                 msg.isUser ? "justify-end" : "justify-start"
               } items-end space-x-2`}
@@ -217,7 +172,7 @@ export default function ReplayAiChat({
                     : "bg-black text-white"
                 }`}
               >
-                <div className="flex flex-row gap-2 ">
+                <div className="flex flex-row gap-2">
                   <p className="font-bold flex">{msg.username}</p>
                   <span className="flex rounded-md">
                     {msg.isAgent ? (
@@ -225,15 +180,11 @@ export default function ReplayAiChat({
                         Agent
                       </Badge>
                     ) : (
-                      <span>
-                        {!msg.isUser ? (
-                          <Badge variant="secondary" className="rounded-md">
-                            {msg.parentAgent}'s Tool
-                          </Badge>
-                        ) : (
-                          <div></div>
-                        )}
-                      </span>
+                      !msg.isUser && (
+                        <Badge variant="secondary" className="rounded-md">
+                          {msg.parentAgent}'s Tool
+                        </Badge>
+                      )
                     )}
                   </span>
                 </div>
@@ -251,7 +202,6 @@ export default function ReplayAiChat({
                 <p className="text-xs mt-1">
                   {format(new Date(msg.timestamp), "p")}
                 </p>
-                {/* {format(new Date(msg.timestamp), 'p')} */}
               </div>
             </div>
             <div>
@@ -264,13 +214,10 @@ export default function ReplayAiChat({
                         autoplay: true,
                         animationData: ChatLoader,
                       }}
-                      height={50}
-                      width={50}
+                      height={40}
+                      width={40}
                     />
                   </div>
-                  <p className="flex text-gray-400 text-center justify-center">
-                    {msg.verdict} {" ..."}
-                  </p>
                 </div>
               ) : (
                 <p className="flex text-gray-400 text-center justify-center my-2">
@@ -281,7 +228,7 @@ export default function ReplayAiChat({
           </div>
         ))}
       </div>
-      <div className="p-4 border-t-2 border-black  sticky bottom-0 flex">
+      <div className="p-4 border-t-2 border-black sticky bottom-0 flex">
         <input
           className="flex-grow p-2 mr-4 border-gray-500 rounded bg-black text-white"
           placeholder="Type your message here…"
@@ -298,4 +245,6 @@ export default function ReplayAiChat({
       </div>
     </div>
   );
-}
+};
+
+export default AiChat;

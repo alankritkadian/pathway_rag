@@ -34,6 +34,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Link from "next/link"
 
 function UploadWindow() {
   const [file, setFile] = useState<File | null>(null);
@@ -174,14 +175,14 @@ function UploadWindow() {
                   <p className="text-purple-500 text-center mb-2">
                     File uploaded successfully! Public URL:
                   </p>
-                  <a
+                  <Link
                     href={uploadUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-white underline hover:text-purple-300"
                   >
                     {uploadUrl}
-                  </a>
+                  </Link>
                 </div>
               )}
             </div>

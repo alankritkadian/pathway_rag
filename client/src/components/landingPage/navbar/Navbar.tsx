@@ -18,11 +18,11 @@ const Navbar: React.FC<NavbarProps> = ({ type }) => {
           <NavigationMenuDemo />
         </div>
       ) : null}
-      {type === 'chat' ? (
+      {/* {type === 'chat' ? (
         <div className="ml-auto" data-testid="navigation-menu-bar">
           <ChatNavbar />
         </div>
-      ) : null}
+      ) : null} */}
     </div>
   );
 };
