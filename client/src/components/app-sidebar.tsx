@@ -57,9 +57,20 @@ const data = {
           url: "/chat",
         },
         {
-          title: "Starred Replay",
-          url: "/chat",
+          title: "Latest Replay",
+          url: "/replay",
         },
+      ],
+    },
+    {
+      title: "Data Sources",
+      url: "/upload",
+      icon: BookOpen,
+      items: [
+        {
+          title: "Upload docs",
+          url: "/upload",
+        }
       ],
     },
     {
@@ -79,21 +90,6 @@ const data = {
           title: "Research",
           url: "#",
         },
-      ],
-    },
-    {
-      title: "Data Sources",
-      url: "/upload",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Available Data",
-          url: "#",
-        },
-        {
-          title: "Upload docs",
-          url: "/upload",
-        }
       ],
     },
     {

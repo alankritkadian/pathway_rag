@@ -84,21 +84,33 @@ interface FlowProps {
   onSignalProcessed: () => void;
 }
 
-const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
+type SequenceItem = {
+    text: string;
+    parent: string | null;
+  };
+
+const ReplayFlow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
   const [treeData, setTreeData] = useState<TreeNode[]>(initialTreeData);
   const treeDataRef = useRef<TreeNode[]>(initialTreeData);
   const [sequence, setSequence] = useState<{ text: string; parent: string | null }[]>([]);
 
-  const generateSequence = () => {
-    // Convert chat array into sequence format
-    const chatSequence = chat.map((item) => ({
-      text: item.username,
-      parent: item.parentAgent,
-    }));
-
-    // Add the initial Query node as the first element
-    return [{ text: "Query", parent: null }, ...chatSequence];
+  const generateSequence = (): SequenceItem[] => {
+    const sequence: SequenceItem[] = []; // Explicitly type the sequence array
+  
+    console.log("chatttttttt",chat);
+    chat.forEach((item) => {
+      if (item.isUser) {
+        // If the chat item is from the user, add a Query node
+        sequence.push({ text: "Query", parent: null });
+      } else {
+        // If the chat item is not from the user, add it to the sequence
+        sequence.push({ text: item.username, parent: item.parentAgent });
+      }
+    });
+  
+    return sequence;
   };
+  
 
   useEffect(() => {
     let isMounted = true;
@@ -106,6 +118,8 @@ const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
     const runSequence = async () => {
       // Process each item in the sequence array
       const extractedSequence = generateSequence();
+
+      console.log("extractedSequenceeeeeeeee",extractedSequence);
       setSequence(extractedSequence);
       for (const item of extractedSequence) {
         if (!isMounted){
@@ -170,7 +184,7 @@ const Flow: React.FC<FlowProps> = ({ type,signal,chat,onSignalProcessed }) => {
     };
 
     if (signal !== null) {
-      // console.log(`Signal received in Flow! Signal ID: ${signal}`);
+    //   console.log(`Signal received in Flow! Signal ID: ${signal}`);
 
       // Process the signal here (e.g., display a message)
       // Simulate signal processing
@@ -250,4 +264,4 @@ const treeRendering = (treeData: TreeNode[]): JSX.Element => {
   );
 };
 
-export default Flow;
+export default ReplayFlow;

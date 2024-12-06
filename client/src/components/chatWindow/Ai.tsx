@@ -1,6 +1,5 @@
 "use client";
-import React, { useState, useEffect, useMemo } from "react";
-import { io, Socket } from "socket.io-client";
+import React, { useState, useEffect } from "react";
 import { SendHorizonalIcon } from "lucide-react";
 import Lottie from "react-lottie";
 import ChatLoader from "../../../public/chatLoader.json"; // Adjust the path to your ChatLoader.json file
@@ -12,9 +11,6 @@ import {
 } from "@/components/ui/accordion";
 import { format, set } from "date-fns";
 import { Badge } from "@/components/ui/badge";
-import { db } from "@/firebase/firebase";
-import { collection, addDoc,serverTimestamp  } from "firebase/firestore";
-
 
 const initialChat = [
   {
@@ -109,18 +105,18 @@ const initialChat = [
   },
 ];
 
-export default function AiChat({
+export default function ReplayAiChat({
   type,
   onButtonClick,
   onChatUpdate,
-  saveSignal,
-  handleDoneSaveChat
+  replay,
+  handleDoneReplay,
 }: {
   type: string;
   onButtonClick: () => void;
   onChatUpdate: (chat: any[]) => void;
-  saveSignal: boolean;
-  handleDoneSaveChat: () => void;
+  replay: boolean;
+  handleDoneReplay: () => void;
 }) {
   const [newMessage, setNewMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<
@@ -142,36 +138,13 @@ export default function AiChat({
   const [simulationStarted, setSimulationStarted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [chat, setChat] = useState(initialChat);
-  const [socketID, setSocketId] = useState("");
-  const [socket, setSocket] = useState<Socket | null>(null);
-
-
-  const saveChatToFirestore = async () => {
-    try {
-      // Reference the "chatHistories" collection
-      const chatCollection = collection(db, "chatHistories");
-  
-      // Add the chat history to Firestore
-      await addDoc(chatCollection, {
-        history: chatHistory, // Chat history as an array of objects
-        servertimestamp: serverTimestamp(), // Use Firestore's server timestamp
-      });
-  
-      console.log("Chat history saved successfully!");
-    } catch (error) {
-      console.error("Error saving chat history:", error);
-    } finally {
-      handleDoneSaveChat();
-      console.log("Save Chat done");
-    }
-  };
 
   // Function to handle sending messages
   const sendMessage = () => {
     if (!newMessage.trim()) return;
+
     onButtonClick();
     onChatUpdate(chat);
-
     const message = {
       id: chatHistory.length + 1,
       content: newMessage,
@@ -185,76 +158,39 @@ export default function AiChat({
     };
     setChatHistory([...chatHistory, message]);
     setNewMessage("");
-    if (!socket) {
-      const newSocket = io("http://172.30.2.194:5000", {
-        withCredentials: true,
-      });
-      setSocket(newSocket);
-
-      newSocket.on("connect", () => {
-        console.log("Connected to socket server:", newSocket.id);
-      });
-
-      // Send the message
-      newSocket.emit("simulate-chat", { query: newMessage });
-
-      newSocket.on("update", (data) => {
-        console.log("Incoming data", data);
-
-        // Add the incoming object to the chat history
-        setChatHistory((prevChat) => [
-          ...prevChat,
-          {
-            id: prevChat.length + 1,
-            username: data.username,
-            isAgent: data.isAgent,
-            parentAgent: data.parentAgent,
-            content: data.content,
-            thought: data.thought,
-            isUser: false,
-            verdict: data.verdict,
-            timestamp: new Date().getTime(),
-          },
-        ]);
-      });
-
-      // newSocket.on("disconnect", () => {
-      //   console.log("Disconnected from socket server");
-      // });
-    } else {
-      // Send the message
-      console.log("##############################################");
-      socket.emit("simulate-chat", { query: newMessage });
-      socket.on("update", (data) => {
-        console.log("Incoming data", data);
-
-        // Add the incoming object to the chat history
-        setChatHistory((prevChat) => [
-          ...prevChat,
-          {
-            id: prevChat.length + 1,
-            username: data.username,
-            isAgent: data.isAgent,
-            parentAgent: data.parentAgent,
-            content: data.content,
-            thought: data.thought,
-            isUser: false,
-            verdict: data.verdict,
-            timestamp: new Date().getTime(),
-          },
-        ]);
-      });
+    setUserInteracted(true);
+    if (!simulationStarted) {
+      setSimulationStarted(true);
     }
   };
 
   // Effect for simulating initialChat responses
   useEffect(() => {
-    if (saveSignal) {
-      saveChatToFirestore();
-    }
+    if (
+      !simulationStarted ||
+      (chatIndex >= initialChat.length && !userInteracted)
+    )
+      return;
 
-    return () => {};
-  }, [chatHistory, chatIndex, socket, saveSignal]);
+    setLoading(true);
+    const timer = setTimeout(() => {
+      if (!userInteracted && chatIndex < initialChat.length) {
+        setChatHistory((ch) => [
+          ...ch,
+          {
+            ...initialChat[chatIndex],
+            id: ch.length + 1,
+            timestamp: new Date().getTime(),
+          },
+        ]);
+        setChatIndex(chatIndex + 1);
+      }
+      setUserInteracted(false);
+      setLoading(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [chatHistory, chatIndex, userInteracted, simulationStarted]);
 
   return (
     <div className="flex flex-col w-[700px] border-transparent bg-white/20 backdrop-blur-lg rounded-lg mr-auto ml-5  h-screen">
