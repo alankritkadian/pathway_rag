@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# For running frontend 
 
-## Getting Started
+- navigate to client folder 
+``` cd client ```
+```  npm i ```
 
-First, run the development server:
+- create .env.local with reference to .env.example
+- log into google cloud console
+- Start a project and get your key as json
+- place the key.json at the root of client
+- Upadte the backend url to your local backend endpoint (search http and replace)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+``` npm run dev ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- frontend will start at localhost
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Website flow
 
-## Learn More
+## Navigation Table
 
-To learn more about Next.js, take a look at the following resources:
+| Endpoint    | Description           | Navigation Options         | Navigated To |
+|-------------|-----------------------|----------------------------|--------------|
+| `/`         | Landing page          | Try now button             | `/chat`      |
+| `/chat`     | New Chat window       | Sidebar: replay history    | `/replay`    |
+|             |                       | Sidebar: upload PDFs       | `/upload`    |
+| `/replay`   | Replay history        | Sidebar: upload PDFs       | `/upload`    |
+| `/upload`   | Upload PDFs           |                            |              |
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### /chat 
 
-## Deploy on Vercel
+- Chat with the model.
+- press play button to see the decision tree simulation
+- Press Save Chat to save all the chat history for future replays 
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### /replay
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Press play to sun the simulation of the latest saved chat history with the side by side decision tree
+
+### /upload 
+
+- upload pdfs you want to provide as data source 
+
