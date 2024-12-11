@@ -5,7 +5,7 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <main className="h-full w-full bg-[#030014] overflow-y-auto overflow-x-hidden">
+    <main className="h-screen w-full bg-[#030014] overflow-y-auto overflow-x-hidden">
     <div className="flex flex-col gap-20">
      <StarsCanvas />
       <Navbar type = "home"/>

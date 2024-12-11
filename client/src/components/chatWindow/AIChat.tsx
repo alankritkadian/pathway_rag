@@ -48,6 +48,7 @@ const AiChat: React.FC<AiChatProps> = ({
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(false);
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [context,setContext] = useState<String | null>(null);
 
   // Save chat history to Firestore
   const saveChatToFirestore = async () => {
@@ -84,9 +85,13 @@ const AiChat: React.FC<AiChatProps> = ({
     newSocket.on("connect", () => {
       console.log("Connected to socket server:", newSocket.id);
     });
+    setSocket(newSocket);
 
     newSocket.on("update", (data) => {
       console.log("Incoming data", data);
+      if(data.username == "Human in the loop"){
+        setContext(data.verdict);
+      }
       setChatHistory((prevChat) => [
         ...prevChat,
         {
@@ -110,13 +115,13 @@ const AiChat: React.FC<AiChatProps> = ({
       setLoading(false);
     });
 
-    setSocket(newSocket);
+
 
     return () => {
-      newSocket.disconnect();
-      console.log("Socket disconnected");
+      // newSocket.disconnect();
+      // console.log("Socket disconnected");
     };
-  }, []);
+  }, [socket]);
 
     // Call onChatUpdate whenever chatHistory changes
     useEffect(() => {
@@ -154,7 +159,16 @@ const AiChat: React.FC<AiChatProps> = ({
 
 
     if (socket) {
-      socket.emit("chat", { query: newMessage });
+      console.log("context",context);
+      if(context != null){
+        socket.emit("chat", { query: newMessage, messages : context });
+        setContext(null)
+      }else{
+        socket.emit("chat", { query: newMessage });
+      }
+    }
+    else{
+      console.log("socket not created for the new message")
     }
   };
 

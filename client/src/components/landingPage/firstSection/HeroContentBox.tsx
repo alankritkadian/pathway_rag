@@ -9,11 +9,13 @@ import {
 } from "@/utils/motion";
 import { SparklesIcon } from "@heroicons/react/24/solid";
 import { Typewriter } from "react-simple-typewriter";
-import Link from 'next/link'
+import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const HeroContentBox: React.FC = () => {
+  const router = useRouter();
   return (
     <motion.div
       initial="hidden"
@@ -40,7 +42,9 @@ const HeroContentBox: React.FC = () => {
               Productivity
             </span>
           </div>
-          <span className="flex justify-start text-6xl font-medium">AI that</span>
+          <span className="flex justify-start text-6xl font-medium">
+            AI that
+          </span>
           <code className="bg-muted relative rounded font-mono text-6xl font-medium text-transparent bg-clip-text bg-gradient-to-r from-purple-500 to-cyan-500">
             <Typewriter
               words={["{Thinks}", "{Reason}", "{Learns}", "{Grows}"]}
@@ -61,15 +65,16 @@ const HeroContentBox: React.FC = () => {
           Retrieval-Augmented Generation. Automate processes and unlock
           real-time insights effortlessly.
         </motion.p>
-        <Button  className="py-2 button-primary bg-transparenta text-center text-[#fffdfe] cursor-pointer rounded-lg max-w-[200px] shadow-inner shadow-purple-800 font-medium hover:shadow-purple-400">
-        <Link href="/chat">
-        <motion.a
-          variants={slideInFromLeft(1)}
-        >
-          Try now!
+        <motion.a variants={slideInFromLeft(1)}>
+          <Button
+            onClick={() => {
+              router.push("/chat");
+            }}
+            className="py-2 button-primary bg-transparenta text-center text-[#fffdfe] cursor-pointer rounded-lg max-w-[200px] shadow-inner shadow-purple-800 font-medium hover:shadow-purple-400"
+          >
+            Try now!
+          </Button>
         </motion.a>
-        </Link>
-        </Button>
       </div>
 
       <motion.div
